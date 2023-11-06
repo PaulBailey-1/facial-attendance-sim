@@ -1,0 +1,8 @@
+
+class Device {
+    
+public:
+    Device();
+
+
+};
