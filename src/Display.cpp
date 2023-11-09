@@ -52,4 +52,9 @@ void Display::draw() {
 		ci::gl::popModelMatrix();
 	}
 
+	ci::gl::color(ci::ColorA(1, 0, 1, 0.5));
+	for (const Device &dev : _map->devs) {
+		ci::gl::drawSolid(dev.getView());
+	}
+
 }

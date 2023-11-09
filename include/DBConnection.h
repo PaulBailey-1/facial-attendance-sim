@@ -5,6 +5,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/mysql/tcp_ssl.hpp>
 
+#include "Entity.h"
+
 class DBConnection {
 public:
 
@@ -12,6 +14,7 @@ public:
     ~DBConnection();
 
     bool connect();
+    void getEntities(std::vector<Entity> &vec);
 
 private:
 

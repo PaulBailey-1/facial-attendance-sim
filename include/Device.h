@@ -9,6 +9,8 @@ public:
 
 	Device(int id, glm::vec2 pos, float angle);
 
+    ci::Shape2d getView() {return _view;}
+
 private:
 
 	const float CAM_ANGLE = 90 * (M_PI / 180); // degrees

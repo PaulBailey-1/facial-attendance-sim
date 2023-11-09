@@ -12,6 +12,7 @@ ci::Shape2d makeRect(glm::vec2 topLeft, float width, float height) {
 }
 
 Simulation::Simulation() {
+
 	_map.size = {300, 200};
 
 	_map.inBounds.push_back(makeRect({0, 0}, 300, 200));
@@ -52,5 +53,9 @@ Simulation::Simulation() {
 
 	_display = Display::start();
 	_display->setMap(&_map);
+
+	if (_db.connect()) {
+		db.getEntities(_entities);
+    }
 
 }

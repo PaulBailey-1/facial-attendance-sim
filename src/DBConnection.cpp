@@ -8,7 +8,6 @@
 
 #include "DBConnection.h"
 
-
 DBConnection::DBConnection() : _ssl_ctx(boost::asio::ssl::context::tls_client), _conn(_ctx, _ssl_ctx) {}
 
 DBConnection::~DBConnection() {
@@ -36,15 +35,12 @@ bool DBConnection::connect() {
     return true;
 }
 
-//void DBConnection::test() {
-//    const char* sql = "SELECT num, message from test";
-//    boost::mysql::results result;
-//    _conn.execute(sql, result);
-//
-//    for (const boost::mysql::row_view &row : result.rows()) {
-//        for (const boost::mysql::field_view &field : row) {
-//            std::cout << field << " ";
-//        }
-//        std::cout << std::endl;
-//    }
-//}
+void DBConnection::getEntities(std::vector<Entity> &vec) {
+   const char* sql = "SELECT id, fromRoom, toRoom from students";
+   boost::mysql::results result;
+   _conn.execute(sql, result);
+
+   for (const boost::mysql::row_view &row : result.rows()) {
+        vec.push_back(Entity(row.at(0).as_int(), row.at(1).as_int(), row.at(2).as_int()));
+   }
+}

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
-#include <cinder/Shape2d.h>
 
 #include "Map.h"
 #include "Device.h"
 #include "Display.h"
+#include "DBConnection.h"
 
 class Simulation {
 public:
@@ -15,10 +14,10 @@ public:
 
 private:
 
+	DBConnection _db;
+
 	Map _map;
 	Display* _display;
-
-	//devs
-	//enties
+	std::vector<Entity> _entities;
 
 };
