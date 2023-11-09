@@ -1,3 +1,4 @@
+#pragma once
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -10,12 +11,12 @@ public:
     DBConnection();
     ~DBConnection();
 
-    void test(); 
+    bool connect();
 
 private:
 
     boost::asio::io_context _ctx;
-    boost::asio::ssl::context _ssl_ctx{boost::asio::ssl::context::tls_client};
+    boost::asio::ssl::context _ssl_ctx;
     boost::mysql::tcp_ssl_connection _conn;
 
 };
