@@ -9,12 +9,12 @@ public:
 
 	Device(int id, glm::vec2 pos, float angle);
 
-    ci::Shape2d getView() {return _view;}
+    const ci::Shape2d& getView() const {return _view;}
 
 private:
 
-	const float CAM_ANGLE = 90 * (M_PI / 180); // degrees
-	const float CAM_RANGE = 10; // ft
+	const float CAM_ANGLE = 60 * (M_PI / 180); // degrees
+	const float CAM_RANGE = 20; // ft
 
 	int _id;
 	glm::vec2 _pos;

@@ -14,6 +14,9 @@ public:
     ~DBConnection();
 
     bool connect();
+    bool query(const char* sql, boost::mysql::results& result);
+    
+    void createTables();
     void getEntities(std::vector<Entity> &vec);
 
 private:

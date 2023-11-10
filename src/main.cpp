@@ -6,14 +6,7 @@
 int main() {
 
     Simulation sim;
-    while (1) {}
-    //DBConnection db; 
-    //if (!db.connect()) {
-    //    return 1;
-    //}
-    //
-    //Device* dev = new Device();
-    //dev->run();
-
+    sim.run();
+    
     return 0;
 }

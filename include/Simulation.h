@@ -6,11 +6,14 @@
 #include "Device.h"
 #include "Display.h"
 #include "DBConnection.h"
+#include "Entity.h"
 
 class Simulation {
 public:
 
 	Simulation();
+
+	void run();
 
 private:
 

@@ -6,9 +6,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(SRCS
     src/main.cpp
-    "src/DBConnection.cpp"
+    src/DBConnection.cpp
     src/Device.cpp
- "src/Simulation.cpp" "src/Display.cpp")
+    src/Simulation.cpp
+    src/Display.cpp
+    src/Entity.cpp
+)
 
 include_directories(include/)
 

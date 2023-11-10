@@ -20,8 +20,25 @@ bool DBConnection::connect() {
         auto endpoints = resolver.resolve("127.0.0.1", boost::mysql::default_port_string);
         boost::mysql::handshake_params params("root", "", "test", boost::mysql::handshake_params::default_collation, boost::mysql::ssl_mode::enable);
 
-        std::cout << "Connecting to mysql server at " << endpoints.begin()->endpoint() << std::endl;
+        std::cout << "Connecting to mysql server at " << endpoints.begin()->endpoint() << " ... " << std::endl;
         _conn.connect(*endpoints.begin(), params);
+    }
+    catch (const boost::mysql::error_with_diagnostics& err) {
+        std::cerr << "Error: " << err.what() << '\n'
+            << "Server diagnostics: " << err.get_diagnostics().server_message() << std::endl;
+        return false;
+    }
+    catch (const std::exception& err) {
+        std::cerr << "Error: " << err.what() << std::endl;
+        return false;
+    }
+    std::cout << "Connected\n";
+    return true;
+}
+
+bool DBConnection::query(const char* sql, boost::mysql::results &result) {
+    try {
+        _conn.execute(sql, result);
     }
     catch (const boost::mysql::error_with_diagnostics& err) {
         std::cerr << "Error: " << err.what() << '\n'
@@ -35,12 +52,20 @@ bool DBConnection::connect() {
     return true;
 }
 
-void DBConnection::getEntities(std::vector<Entity> &vec) {
-   const char* sql = "SELECT id, fromRoom, toRoom from students";
-   boost::mysql::results result;
-   _conn.execute(sql, result);
+void DBConnection::createTables() {
+    boost::mysql::results r;
+    query("CREATE TABLE IF NOT EXISTS Students (\
+        id INT AUTO_INCREMENT PRIMARY KEY, \
+        fromRoom INT, \
+        toRoom INT \
+    )", r);
+}
 
-   for (const boost::mysql::row_view &row : result.rows()) {
-        vec.push_back(Entity(row.at(0).as_int(), row.at(1).as_int(), row.at(2).as_int()));
-   }
+void DBConnection::getEntities(std::vector<Entity> &vec) {
+    boost::mysql::results result;
+    if (query("SELECT id, fromRoom, toRoom from Students", result) && !result.empty()) {
+        for (const boost::mysql::row_view& row : result.rows()) {
+            vec.push_back(Entity(row.at(0).as_int64(), row.at(1).as_int64(), row.at(2).as_int64()));
+        }
+    }
 }
