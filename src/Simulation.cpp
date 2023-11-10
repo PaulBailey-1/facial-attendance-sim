@@ -1,4 +1,6 @@
 
+#include <chrono>
+
 #include "Simulation.h"
 
 ci::Shape2d makeRect(glm::vec2 topLeft, float width, float height) {
@@ -61,7 +63,11 @@ Simulation::Simulation() {
 }
 
 void Simulation::run() {
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	while (1) {
-
+		for (Entity& entity : _entities) {
+			entity.step(0.1);
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 }

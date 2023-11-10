@@ -24,7 +24,7 @@ void Display::setup() {
 }
 
 void Display::draw() {
-	ci::ColorA grey = ci::Color::gray(0.8);
+	ci::ColorA grey = ci::Color::gray(0.4);
 
 	ci::gl::clear(grey);
 
@@ -49,6 +49,11 @@ void Display::draw() {
 		ci::gl::drawSolid(shape);
 	}
 
+	ci::gl::color(ci::ColorA(170/255.0, 70/255.0, 190/255.0, 0.5));
+	for (const Device &dev : _map->devs) {
+		ci::gl::drawSolid(dev.getView());
+	}
+
 	ci::gl::color(ci::Color(90/255.0, 65/255.0, 55/255.0));
 	for (const Door &door : _map->doors) {
 		ci::gl::pushModelMatrix();
@@ -56,11 +61,6 @@ void Display::draw() {
 		ci::gl::rotate(door.angle * (M_PI / 180));
 		ci::gl::drawSolidRect(ci::Rectf({ -DOOR_WIDTH / 2, -0.5 }, { DOOR_WIDTH / 2, 0.5 }));
 		ci::gl::popModelMatrix();
-	}
-
-	ci::gl::color(ci::ColorA(170/255.0, 70/255.0, 190/255.0, 0.5));
-	for (const Device &dev : _map->devs) {
-		ci::gl::drawSolid(dev.getView());
 	}
 
 	ci::gl::scale(1/scale, 1/scale);
@@ -75,5 +75,10 @@ void Display::draw() {
 		}
 	}
 	
+	ci::gl::scale(scale, scale);
+	ci::gl::color(ci::Color(1, 0, 0));
+	for (const Entity& entity : *_entities) {
+		ci::gl::drawSolidCircle(entity.getPos(), 1.0);
+	}
 
 }
