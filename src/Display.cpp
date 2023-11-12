@@ -10,12 +10,18 @@ Display::Display() {
 }
 
 Display* Display::start() {
+
+	printf("Starting display...\n");
+
 	std::thread thread([] {
 		cinder::app::RendererRef renderer(new ci::app::RendererGl);
 		cinder::app::AppMsw::main<Display>(renderer, "Simulation");
 	});
 	thread.detach();
 	while (cinder::app::AppMsw::get() == nullptr || !displayRunning) {}
+
+	printf("Done\n");
+
 	return (Display*) cinder::app::AppMsw::get();
 }
 
@@ -28,7 +34,7 @@ void Display::draw() {
 
 	ci::gl::clear(grey);
 
-	if (_map == nullptr) {
+	if (_map == nullptr || _entities == nullptr || _devices == nullptr) {
 		return;
 	}
 
@@ -50,8 +56,8 @@ void Display::draw() {
 	}
 
 	ci::gl::color(ci::ColorA(170/255.0, 70/255.0, 190/255.0, 0.5));
-	for (const Device &dev : _map->devs) {
-		ci::gl::drawSolid(dev.getView());
+	for (const Device* dev : *_devices) {
+		ci::gl::drawSolid(dev->getView());
 	}
 
 	ci::gl::color(ci::Color(90/255.0, 65/255.0, 55/255.0));
@@ -67,18 +73,20 @@ void Display::draw() {
 	ci::gl::color(ci::Color::black());
 	ci::TextBox tboxBase = ci::TextBox().alignment(ci::TextBox::CENTER).font(_font).size(glm::ivec2(50, 15));
 
-	const iGrid &pathMap = _entities->at(0).getPathMap();
-	for (int x = 0; x < pathMap.size(); x+=4) {
-		for (int y = 0; y < pathMap[x].size(); y+=4) {
-			ci::gl::Texture2dRef textTexture = ci::gl::Texture2d::create(tboxBase.text(std::to_string(pathMap[x][y])).render());
-			ci::gl::draw(textTexture, (glm::vec2(x, y) * scale) - glm::vec2(tboxBase.getSize()) * 0.5f);
+	if (_entities->size() > 0) {
+		const iGrid &pathMap = _entities->at(0)->getPathMap();
+		for (int x = 0; x < pathMap.size(); x+=4) {
+			for (int y = 0; y < pathMap[x].size(); y+=4) {
+				ci::gl::Texture2dRef textTexture = ci::gl::Texture2d::create(tboxBase.text(std::to_string(pathMap[x][y])).render());
+				ci::gl::draw(textTexture, (glm::vec2(x, y) * scale) - glm::vec2(tboxBase.getSize()) * 0.5f);
+			}
 		}
 	}
 	
 	ci::gl::scale(scale, scale);
 	ci::gl::color(ci::Color(1, 0, 0));
-	for (const Entity& entity : *_entities) {
-		ci::gl::drawSolidCircle(entity.getPos(), 1.0);
+	for (const Entity* entity : *_entities) {
+		ci::gl::drawSolidCircle(entity->getPos(), 1.0);
 	}
 
 }

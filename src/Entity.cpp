@@ -3,11 +3,21 @@
 
 #include "Entity.h"
 
-Entity::Entity(int id, int fromRoom, int toRoom) {
+Entity::Entity(int id, boost::span<const UCHAR> facialFeatures, std::vector<int> schedule) {
 
     _id = id;
-    _fromRoom = fromRoom;
-    _toRoom = toRoom;
+
+    if (facialFeatures.size_bytes() != 4 * 128) {
+        throw std::runtime_error("Can't initilize entity. Invalid facial feature buffer.\n");
+    }
+    //std::copy(facialFeatures.cbegin(), facialFeatures.cend(), _facialFeatures.begin());
+    memcpy(_facialFeatures.data(), facialFeatures.data(), facialFeatures.size_bytes());
+
+    if (schedule.size() < 2) {
+        throw std::runtime_error("Can't initilize entity. Invalid schedule.\n");
+    }
+    _fromRoom = schedule[0];
+    _toRoom = schedule[1];
 
 }
 
@@ -69,21 +79,13 @@ void Entity::step(float dt) {
     int current = _pathMap[ipos.x][ipos.y];
     if (current == 0) return;
     if (current == -2) { 
-        current = 1e8;
+        current = 1e3;
     }
 
     int li = 0, lj = 0;
     float step = 0.0;
     for (int i = -1; i < 2; i++) {
         for (int j = -1; j < 2; j++) {
- /*           if (
-                ipos.x + i >= 0 && ipos.x + i < _pathMap.size() &&
-                ipos.y + j >= 0 && ipos.y + j < _pathMap[ipos.x].size()
-                ) {
-                std::cout << _pathMap[ipos.x + i][ipos.y + j] << " ";
-                if (_pathMap[ipos.x + i][ipos.y + j] == 10) {
-                }
-            }*/
             if (
                     !(i == 0 && j == 0) &&
                     ipos.x + i >= 0 && ipos.x + i < _pathMap.size() &&
@@ -92,15 +94,14 @@ void Entity::step(float dt) {
                     current - _pathMap[ipos.x + i][ipos.y + j] > step) {
                 li = i;
                 lj = j;
+                int a = 0;
                 step = current - _pathMap[ipos.x + i][ipos.y + j];
                 if (i * j == 0) {
                     step += 0.1;
                 }
             }
         }
-        //std::cout << std::endl;
     }
-    //std::cout << std::endl;
     if (li == 0 && lj == 0) return;
 
     glm::vec2 dir = glm::normalize(glm::vec2(glm::ivec2(ipos.x + li, ipos.y + lj) - ipos));

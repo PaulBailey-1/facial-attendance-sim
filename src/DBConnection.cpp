@@ -53,19 +53,68 @@ bool DBConnection::query(const char* sql, boost::mysql::results &result) {
 }
 
 void DBConnection::createTables() {
+
+    printf("Checking tables...\n");
+
     boost::mysql::results r;
     query("CREATE TABLE IF NOT EXISTS Students (\
         id INT AUTO_INCREMENT PRIMARY KEY, \
-        fromRoom INT, \
-        toRoom INT \
+        facial_features BLOB(512) \
     )", r);
+    query("CREATE TABLE IF NOT EXISTS Schedules (\
+        student_id INT, \
+        period INT, \
+        room_id INT, \
+        CONSTRAINT FK_student FOREIGN KEY (student_id) REFERENCES Students(id) \
+    )", r);
+    query("CREATE TABLE IF NOT EXISTS Updates (\
+        device_id INT, \
+        facial_features BLOB(512), \
+        time TIMESTAMP DEFAULT CURRENT_TIMESTAMP \
+    )", r);
+
+    printf("Done\n");
+
 }
 
-void DBConnection::getEntities(std::vector<Entity> &vec) {
-    boost::mysql::results result;
-    if (query("SELECT id, fromRoom, toRoom from Students", result) && !result.empty()) {
-        for (const boost::mysql::row_view& row : result.rows()) {
-            vec.push_back(Entity(row.at(0).as_int64(), row.at(1).as_int64(), row.at(2).as_int64()));
+void DBConnection::getEntities(std::vector<Entity*> &vec) {
+
+    printf("Loading entities...\n");
+
+    try {
+        boost::mysql::results result;
+        _conn.execute("SELECT id, facial_features from Students", result);
+        if (!result.empty()) {
+            for (const boost::mysql::row_view& row : result.rows()) {
+                int id = row.at(0).as_int64();
+
+                std::vector<int> schedule;
+                boost::mysql::results scheduleResult;
+                _conn.execute(_conn.prepare_statement("SELECT room_id FROM Schedules WHERE student_id=? ORDER BY period ASC").bind(id), scheduleResult);
+                for (const boost::mysql::row_view& scheduleRow : scheduleResult.rows()) {
+                    schedule.push_back(scheduleRow[0].as_int64());
+                }
+
+                vec.push_back(new Entity(id, row.at(1).as_blob(), schedule));
+            }
         }
+    }
+    catch (const boost::mysql::error_with_diagnostics& err) {
+        std::cerr << "Error: " << err.what() << '\n'
+            << "Server diagnostics: " << err.get_diagnostics().server_message() << std::endl;
+    }
+
+    printf("Done\n");
+
+}
+
+void DBConnection::pushUpdate(int devId, const boost::span<UCHAR> facialFeatures) {
+    try {
+        boost::mysql::results result;
+        _conn.execute(_conn.prepare_statement("INSERT INTO Updates (device_id, facial_features) VALUES(?, ?)").bind(devId, facialFeatures), result);
+    }
+    catch (const boost::mysql::error_with_diagnostics& err) {
+        std::cerr << "Error: " << err.what() << '\n'
+            << "Server diagnostics: " << err.get_diagnostics().server_message() << std::endl;
     }
 }

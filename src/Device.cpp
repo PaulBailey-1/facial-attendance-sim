@@ -2,14 +2,30 @@
 
 #include "Device.h"
 
-Device::Device(int id, glm::vec2 pos, float angle) : _id(id), _pos(pos) {
+Device::Device(DeviceLoc loc) : _id(loc.id), _pos(loc.pos) {
 
 	_view.moveTo({0, 0});
 	_view.lineTo({ CAM_RANGE, 0 });
 	_view.arc({0, 0}, CAM_RANGE, 0.0, CAM_ANGLE);
 	_view.close();
 	glm::mat3 trans(1.0);
-	trans = glm::translate(trans, pos);
-	trans = glm::rotate(trans, float(-CAM_ANGLE / 2 + angle * (M_PI / 180)));
+	trans = glm::translate(trans, _pos);
+	trans = glm::rotate(trans, float(-CAM_ANGLE / 2 + loc.angle * (M_PI / 180)));
 	_view.transform(trans);
+
+	_db.connect();
+}
+
+void Device::run(const std::vector<Entity*>& entities) {
+	for (const Entity* entity : entities) {
+		auto seen = _seenEntities.find(entity->getId());
+		if (_view.contains(entity->getPos())) {
+			if (seen == _seenEntities.end()) {
+				_seenEntities.insert(entity->getId());
+				_db.pushUpdate(_id, entity->getFacialFeatures());
+			}
+		} else if (seen != _seenEntities.end()) {
+			_seenEntities.erase(seen);
+		}
+	}
 }

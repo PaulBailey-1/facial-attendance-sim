@@ -21,6 +21,7 @@ private:
 
 	Map _map;
 	Display* _display;
-	std::vector<Entity> _entities;
+	std::vector<Device*> _devices;
+	std::vector<Entity*> _entities;
 
 };

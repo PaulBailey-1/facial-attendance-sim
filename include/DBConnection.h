@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/core/span.hpp>
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -17,7 +19,8 @@ public:
     bool query(const char* sql, boost::mysql::results& result);
     
     void createTables();
-    void getEntities(std::vector<Entity> &vec);
+    void getEntities(std::vector<Entity*> &vec);
+    void pushUpdate(int devId, const boost::span<UCHAR> facialFeatures);
 
 private:
 

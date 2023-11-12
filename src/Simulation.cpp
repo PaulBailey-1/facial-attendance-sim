@@ -15,19 +15,21 @@ ci::Shape2d makeRect(glm::vec2 topLeft, float width, float height) {
 
 Simulation::Simulation() {
 
+	printf("Loading map... \n");
+
 	_map.size = {100, 60};
 
 	_map.inBounds.push_back(makeRect({0, 0}, 100, 60));
 	_map.outBounds.push_back(makeRect({10, 10}, 80, 40));
 
-	_map.devs.push_back(Device(0, { 50, 5 }, 180));
-	_map.devs.push_back(Device(1, { 50, 5 }, 0));
-	_map.devs.push_back(Device(2, { 95, 30 }, 90));
-	_map.devs.push_back(Device(3, { 95, 30 }, -90));
-	_map.devs.push_back(Device(4, { 50, 55 }, 0));
-	_map.devs.push_back(Device(5, { 50, 55 }, 180));
-	_map.devs.push_back(Device(6, { 5, 30 }, -90));
-	_map.devs.push_back(Device(7, { 5, 30 }, 90));
+	_map.devs.push_back(DeviceLoc{ 0, { 50, 5 }, 180 });
+	_map.devs.push_back(DeviceLoc{ 1, { 50, 5 }, 0 });
+	_map.devs.push_back(DeviceLoc{2, { 95, 30 }, 90});
+	_map.devs.push_back(DeviceLoc{3, { 95, 30 }, -90});
+	_map.devs.push_back(DeviceLoc{4, { 50, 55 }, 0});
+	_map.devs.push_back(DeviceLoc{5, { 50, 55 }, 180});
+	_map.devs.push_back(DeviceLoc{6, { 5, 30 }, -90});
+	_map.devs.push_back(DeviceLoc{7, { 5, 30 }, 90});
 
 	_map.doors.push_back(Door(0, { 20, 0 }, 0));
 	_map.doors.push_back(Door(1, { 40, 0 }, 0));
@@ -48,25 +50,41 @@ Simulation::Simulation() {
 	_map.doors.push_back(Door(12, { 10, 30 }, 90));
 	_map.doors.push_back(Door(13, { 90, 30 }, 90));
 
+	printf("Done\nCreating devicces...\n");
+
+	for (DeviceLoc devLoc : _map.devs) {
+		_devices.push_back(new Device(devLoc));
+	}
+
+	printf("Done\n");
+
 	if (_db.connect()) {
 		_db.createTables();
 		_db.getEntities(_entities);
     }
 
-	for (Entity& entity : _entities) {
-		entity.createPathMap(_map);
+	printf("Generating pathmaps...\n");
+
+	for (Entity* entity : _entities) {
+		entity->createPathMap(_map);
 	}
 
+	printf("Done\n");
+
 	_display = Display::start();
-	_display->setMap(&_map);
-	_display->setEntities(&_entities);
+	_display->setObservables(&_map, &_entities, &_devices);
 }
 
 void Simulation::run() {
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	printf("Running simulation...\n");
 	while (1) {
-		for (Entity& entity : _entities) {
-			entity.step(0.1);
+		for (Entity* entity : _entities) {
+			entity->step(0.1);
+		}
+		for (Device* dev : _devices) {
+			dev->run(_entities);
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}

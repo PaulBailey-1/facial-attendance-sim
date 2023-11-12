@@ -9,6 +9,7 @@
 
 #include "Map.h"
 #include "Entity.h"
+#include "Device.h"
 
 class Display : public ci::app::App {
 public:
@@ -19,11 +20,10 @@ public:
 
 	bool isRunning() { return getNumWindows() > 0; }
 
-	void setMap(const Map* map) { 
-		_map = map; }
-
-	void setEntities(const std::vector<Entity>* entities) {
+	void setObservables(const Map* map, const std::vector<Entity*>* entities, const std::vector<Device*>* devs) {
+		_map = map;
 		_entities = entities;
+		_devices = devs;
 	}
 
 	void setup() override;
@@ -34,7 +34,8 @@ private:
 	const float DOOR_WIDTH = 6.0; // ft
 
 	const Map* _map = nullptr;
-	const std::vector<Entity>* _entities = nullptr;
+	const std::vector<Entity*>* _entities = nullptr;
+	const std::vector<Device*>* _devices = nullptr;
 
 	ci::Font _font;
 
