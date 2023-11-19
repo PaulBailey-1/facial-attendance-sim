@@ -15,12 +15,14 @@ DBConnection::~DBConnection() {
 }
 
 bool DBConnection::connect() {
+    static bool logged = false;
     try {
         boost::asio::ip::tcp::resolver resolver(_ctx.get_executor());
         auto endpoints = resolver.resolve("127.0.0.1", boost::mysql::default_port_string);
         boost::mysql::handshake_params params("root", "", "test", boost::mysql::handshake_params::default_collation, boost::mysql::ssl_mode::enable);
 
-        std::cout << "Connecting to mysql server at " << endpoints.begin()->endpoint() << " ... " << std::endl;
+        if (!logged) std::cout << "Connecting to mysql server at " << endpoints.begin()->endpoint() << " ... ";
+
         _conn.connect(*endpoints.begin(), params);
     }
     catch (const boost::mysql::error_with_diagnostics& err) {
@@ -32,7 +34,7 @@ bool DBConnection::connect() {
         std::cerr << "Error: " << err.what() << std::endl;
         return false;
     }
-    std::cout << "Connected\n";
+    if (!logged) { logged = true; printf("Connected\n"); }
     return true;
 }
 
@@ -54,20 +56,21 @@ bool DBConnection::query(const char* sql, boost::mysql::results &result) {
 
 void DBConnection::createTables() {
 
-    printf("Checking tables...\n");
+    printf("Checking tables ... ");
 
     boost::mysql::results r;
-    query("CREATE TABLE IF NOT EXISTS Students (\
+    query("CREATE TABLE IF NOT EXISTS students (\
         id INT AUTO_INCREMENT PRIMARY KEY, \
         facial_features BLOB(512) \
     )", r);
-    query("CREATE TABLE IF NOT EXISTS Schedules (\
+    query("CREATE TABLE IF NOT EXISTS schedules (\
         student_id INT, \
         period INT, \
         room_id INT, \
         CONSTRAINT FK_student FOREIGN KEY (student_id) REFERENCES Students(id) \
     )", r);
-    query("CREATE TABLE IF NOT EXISTS Updates (\
+    query("CREATE TABLE IF NOT EXISTS updates (\
+        id INT AUTO_INCREMENT PRIMARY KEY, \
         device_id INT, \
         facial_features BLOB(512), \
         time TIMESTAMP DEFAULT CURRENT_TIMESTAMP \
@@ -79,18 +82,18 @@ void DBConnection::createTables() {
 
 void DBConnection::getEntities(std::vector<Entity*> &vec) {
 
-    printf("Loading entities...\n");
+    printf("Loading entities ... ");
 
     try {
         boost::mysql::results result;
-        _conn.execute("SELECT id, facial_features from Students", result);
+        _conn.execute("SELECT id, facial_features FROM students", result);
         if (!result.empty()) {
             for (const boost::mysql::row_view& row : result.rows()) {
                 int id = row.at(0).as_int64();
 
                 std::vector<int> schedule;
                 boost::mysql::results scheduleResult;
-                _conn.execute(_conn.prepare_statement("SELECT room_id FROM Schedules WHERE student_id=? ORDER BY period ASC").bind(id), scheduleResult);
+                _conn.execute(_conn.prepare_statement("SELECT room_id FROM schedules WHERE student_id=? ORDER BY period ASC").bind(id), scheduleResult);
                 for (const boost::mysql::row_view& scheduleRow : scheduleResult.rows()) {
                     schedule.push_back(scheduleRow[0].as_int64());
                 }
@@ -111,7 +114,7 @@ void DBConnection::getEntities(std::vector<Entity*> &vec) {
 void DBConnection::pushUpdate(int devId, const boost::span<UCHAR> facialFeatures) {
     try {
         boost::mysql::results result;
-        _conn.execute(_conn.prepare_statement("INSERT INTO Updates (device_id, facial_features) VALUES(?, ?)").bind(devId, facialFeatures), result);
+        _conn.execute(_conn.prepare_statement("INSERT INTO updates (device_id, facial_features) VALUES(?, ?)").bind(devId, facialFeatures), result);
     }
     catch (const boost::mysql::error_with_diagnostics& err) {
         std::cerr << "Error: " << err.what() << '\n'

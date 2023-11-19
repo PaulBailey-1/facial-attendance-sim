@@ -22,7 +22,7 @@ public:
     const iGrid& getPathMap() const { return _pathMap; }
     const glm::vec2& getPos() const { return _pos; }
     int getId() const { return _id; }
-    const boost::span<UCHAR> getFacialFeatures() const { return boost::span<UCHAR>(reinterpret_cast<UCHAR*>(const_cast<float*>(_facialFeatures.data())), sizeof(_facialFeatures)); }
+    const boost::span<UCHAR> getFacialFeatures() const { return boost::span<UCHAR>(reinterpret_cast<UCHAR*>(const_cast<float*>(_facialFeatures.data())), _facialFeatures.size() * sizeof(float)); }
 
 private:
     

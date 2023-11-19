@@ -10,7 +10,6 @@ Entity::Entity(int id, boost::span<const UCHAR> facialFeatures, std::vector<int>
     if (facialFeatures.size_bytes() != 4 * 128) {
         throw std::runtime_error("Can't initilize entity. Invalid facial feature buffer.\n");
     }
-    //std::copy(facialFeatures.cbegin(), facialFeatures.cend(), _facialFeatures.begin());
     memcpy(_facialFeatures.data(), facialFeatures.data(), facialFeatures.size_bytes());
 
     if (schedule.size() < 2) {

@@ -15,7 +15,12 @@ ci::Shape2d makeRect(glm::vec2 topLeft, float width, float height) {
 
 Simulation::Simulation() {
 
-	printf("Loading map... \n");
+	if (_db.connect()) {
+		_db.createTables();
+		_db.getEntities(_entities);
+	}
+
+	printf("Loading map ... ");
 
 	_map.size = {100, 60};
 
@@ -50,20 +55,13 @@ Simulation::Simulation() {
 	_map.doors.push_back(Door(12, { 10, 30 }, 90));
 	_map.doors.push_back(Door(13, { 90, 30 }, 90));
 
-	printf("Done\nCreating devicces...\n");
+	printf("Done\nCreating devices ... ");
 
 	for (DeviceLoc devLoc : _map.devs) {
 		_devices.push_back(new Device(devLoc));
 	}
 
-	printf("Done\n");
-
-	if (_db.connect()) {
-		_db.createTables();
-		_db.getEntities(_entities);
-    }
-
-	printf("Generating pathmaps...\n");
+	printf("Done\nGenerating pathmaps ... ");
 
 	for (Entity* entity : _entities) {
 		entity->createPathMap(_map);

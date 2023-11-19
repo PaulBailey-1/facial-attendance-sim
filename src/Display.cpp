@@ -11,7 +11,7 @@ Display::Display() {
 
 Display* Display::start() {
 
-	printf("Starting display...\n");
+	printf("Starting display ... ");
 
 	std::thread thread([] {
 		cinder::app::RendererRef renderer(new ci::app::RendererGl);
